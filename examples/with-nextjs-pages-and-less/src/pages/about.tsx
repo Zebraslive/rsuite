@@ -3,8 +3,11 @@ import Image from 'next/image';
 import { Stack, Button } from 'rsuite';
 import styles from '@/styles/About.module.css';
 import Navbar from '../components/Navbar';
+import { useSession } from 'next-auth/react';
 
-export default function Home() {
+export default function About() {
+  const { data: session } = useSession();
+
   return (
     <>
       <Head>
@@ -35,6 +38,16 @@ export default function Home() {
 
           <Image src="/rsuite.svg" alt="React Suite Logo" width={60} height={60} priority />
         </div>
+
+        {session ? (
+          <div>
+            <p>Welcome, {session.user.name}!</p>
+            <p>Email: {session.user.email}</p>
+            <p>User ID: {session.user.id}</p>
+          </div>
+        ) : (
+          <p>Please sign in to view your account information.</p>
+        )}
 
         <Stack spacing={20}>
           <Button

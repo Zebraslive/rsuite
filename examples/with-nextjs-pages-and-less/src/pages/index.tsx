@@ -1,9 +1,37 @@
 import Head from 'next/head';
 import Image from 'next/image';
+import { useSession, signIn, signOut } from 'next-auth/react';
 import styles from '@/styles/Home.module.css';
 import Navbar from '../components/Navbar';
+import { useState } from 'react';
 
 export default function Home() {
+  const { data: session } = useSession();
+  const [image, setImage] = useState(null);
+  const [prompt, setPrompt] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('image', image);
+    formData.append('prompt', prompt);
+
+    const res = await fetch('/api/runwayml', {
+      method: 'POST',
+      body: JSON.stringify({
+        image: formData.get('image'),
+        prompt: formData.get('prompt'),
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await res.json();
+    console.log(data);
+  };
+
   return (
     <>
       <Head>
@@ -34,6 +62,32 @@ export default function Home() {
 
           <Image src="/rsuite.svg" alt="React Suite Logo" width={60} height={60} priority />
         </div>
+
+        {session ? (
+          <div>
+            <p>Welcome, {session.user.name}!</p>
+            <button onClick={() => signOut()}>Sign out</button>
+            <form onSubmit={handleSubmit}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImage(e.target.files[0])}
+              />
+              <input
+                type="text"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Enter text prompt"
+              />
+              <button type="submit">Submit</button>
+            </form>
+          </div>
+        ) : (
+          <div>
+            <p>Please sign in to use the service.</p>
+            <button onClick={() => signIn('discord')}>Sign in</button>
+          </div>
+        )}
 
         <div className={styles.grid}>
           <a
